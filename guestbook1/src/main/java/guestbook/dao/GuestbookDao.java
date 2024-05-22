@@ -62,7 +62,7 @@ public class GuestbookDao {
 		return result;
 	}
 
-	public boolean deleteByPassword(String password) {
+	public boolean deleteByNoAndPassword(Long no,String password) {
 		boolean result = false;
 		
 		Connection conn = null;
@@ -77,11 +77,12 @@ public class GuestbookDao {
 			conn = DriverManager.getConnection(url, "webdb", "webdb");
 
 			//3. Statement 준비
-			String sql = "delete from guestbook where password = ?";
+			String sql = "delete from guestbook where no=? and password = ?";
 			pstmt = conn.prepareStatement(sql);
 
 			//4. binding
-			pstmt.setString(1, password);
+			pstmt.setLong(1, no);
+			pstmt.setString(2, password);
 			
 			//4. SQL 실행
 			int count = pstmt.executeUpdate();
