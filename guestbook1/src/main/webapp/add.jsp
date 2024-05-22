@@ -20,7 +20,7 @@
 	vo.setRegDate(regDate);
 	
 	GuestbookDao dao = new GuestbookDao();
-	boolean result = dao.insert(vo);
+	dao.insert(vo);
 
 	response.sendRedirect("index.jsp");
 %>
