@@ -26,21 +26,71 @@ public class GuestbookDao {
 	}
 
 	public void insert(GuestbookVo vo) {
-
-		try (Connection conn = getConnection();
-
-				PreparedStatement pstmt = conn.prepareStatement("insert into guestbook values(null, ?, ?, ?,now())");) {
-
+		
+		Connection conn=null;
+		PreparedStatement pstmt1=null;
+		PreparedStatement pstmt2=null;
+		PreparedStatement pstmt3=null;
+		
+		try  {
+			
+			conn = getConnection();
+			
+			
+			
+			pstmt1 = conn.prepareStatement("update guestbook_log set count = count + 1 where date = current_date()");
+			pstmt2 = conn.prepareStatement("insert into guestbook_log values(current_date(), 1)");
+			
+			pstmt3 = conn.prepareStatement("insert into guestbook values(null, ?, ?, ?,now())");
 			// 4. binding
-			pstmt.setString(1, vo.getName());
-			pstmt.setString(2, vo.getPassword());
-			pstmt.setString(3, vo.getContents());
+			pstmt3.setString(1, vo.getName());
+			pstmt3.setString(2, vo.getPassword());
+			pstmt3.setString(3, vo.getContents());
+			
+			// TX:BEGIN
+			conn.setAutoCommit(false);
 
-			// 5. SQL 실행
-			pstmt.executeUpdate();
+			// DML1
+			int rowCount = pstmt1.executeUpdate();
+			
+			// DML2
+			if(rowCount==0) {
+				pstmt2.executeUpdate();
+			}
+			
+			// DML3
+			pstmt3.executeUpdate();
+			
+			// TX:END
+			conn.commit();
 
 		} catch (SQLException e) {
 			System.out.println("error:" + e);
+			
+			// TX:END FAIL
+			try {
+				if(conn!=null) {
+					conn.rollback();
+				}
+				
+				}
+			catch(SQLException ignored) {
+				
+			}
+		} finally {
+			try {
+				if(pstmt3!=null) {
+					pstmt3.close();
+				}
+				if(pstmt2!=null) {
+					pstmt2.close();
+				}
+				if(pstmt1!=null) {
+					pstmt1.close();
+				}
+			}catch(SQLException ignored){
+				
+			}
 		}
 
 	}
